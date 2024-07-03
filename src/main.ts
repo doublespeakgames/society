@@ -1,3 +1,6 @@
 import { is } from "@src/statement";
 
-is();
+is({
+  subject: 'People',
+  is: 'Good'
+});

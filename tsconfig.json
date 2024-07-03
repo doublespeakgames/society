@@ -10,7 +10,7 @@
     "moduleResolution": "Bundler",
     "baseUrl": "./",
     "paths": {
-      "@src/*": ["../src"]
+      "@src/*": ["src/*"]
     }
   },
   "exclude": ["node_modules", "dist"]
