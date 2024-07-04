@@ -34,6 +34,8 @@ export interface Judgement {
 export interface Ideology {
   assert: (statement:Assertion) => void;
   judge: (subject:Subject) => Judgement[];
+  copy: (modifiers?:Assertion[]) => Ideology;
+  toString: () => string;
 }
 
 export interface ResolveTask {

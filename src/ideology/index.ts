@@ -77,7 +77,9 @@ const IdeologyConstructor = (principles:Assertion[]):Ideology => {
         tasks.unshift({ subject: subject.noun, reason: [] });
       }
       return resolveBeliefs(beliefs, tasks, []);
-    }
+    },
+    copy: (modifiers = []) => IdeologyConstructor([...principles, ...modifiers]),
+    toString: () => JSON.stringify(principles, null, 2)
   };
 };
 

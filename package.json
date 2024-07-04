@@ -6,6 +6,7 @@
   "author": "Michael Townsend <michael@doublespeakgames.com>",
   "license": "MIT",
   "scripts": {
+    "dev": "tsx src/main.ts",
     "build": "rollup -c",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
@@ -18,6 +19,10 @@
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
     "tslib": "^2.6.3",
+    "tsx": "^4.16.2",
     "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "unique-names-generator": "^4.7.1"
   }
 }

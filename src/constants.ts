@@ -1,5 +1,6 @@
 export const VALUES = [
   'desired',
   'reviled',
-  'sacred'
+  'sacred',
+  'feared',
 ] as const;
