@@ -71,11 +71,9 @@ const IdeologyConstructor = (principles:Assertion[]):Ideology => {
       // TODO
       throw new Error("Not implemented");
     },
-    judge: (subject) => {
-      const tasks = [{ subject, reason: []}];
-      if (typeof subject !== 'string') {
-        tasks.unshift({ subject: subject.noun, reason: [] });
-      }
+    judge: (subjectOrSubjects) => {
+      const subjects = Array.isArray(subjectOrSubjects) ? subjectOrSubjects : [ subjectOrSubjects ];
+      const tasks = subjects.map(subject => ({ subject, reason: []}));
       return resolveBeliefs(beliefs, tasks, []);
     },
     copy: (modifiers = []) => IdeologyConstructor([...principles, ...modifiers]),

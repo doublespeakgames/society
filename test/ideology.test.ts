@@ -52,9 +52,6 @@ describe("Ideology", () => {
 
     expect(ideology.judge({ adjective: 'pretty', noun: 'flowers' })).toEqual([
       { value: 'desired', reason: [
-        { subject: 'flowers', is: 'desired' }
-      ] },
-      { value: 'desired', reason: [
         { subject: { adjective: 'pretty', noun: 'flowers' }, is: 'desired' }
       ] },
       { value: "desired", reason: [
