@@ -21,23 +21,30 @@ describe("Actor", () => {
   });
 
   it("should be able to judge other actors", () => {
+    const peopleAreSacred = { subject: 'people', is: 'sacred' };
+    const famousPeopleAreLucky = { subject: { adjective: 'famous', noun: 'people' }, is: 'lucky' };
+    const luckyPeopleAreReviled = { subject: { adjective: 'lucky', noun: 'people' }, is: 'reviled' };
+    const unluckyPeopleAreFeared = { subject: { adjective: 'unlucky', noun: 'people' }, is: 'feared' };
     const principles = [
-      { subject: 'people', is: 'sacred' },
-      { subject: { adjective: 'lucky', noun: 'people' }, is: 'reviled' },
-      { subject: { adjective: 'unlucky', noun: 'people' }, is: 'feared' }
+      peopleAreSacred,
+      luckyPeopleAreReviled,
+      unluckyPeopleAreFeared,
+      famousPeopleAreLucky
     ];
     const society = SocietyConstructor(principles, 0);
+    const famousPerson = Actor(society, [ 'famous' ]);
+    const unluckyPerson = Actor(society, [ 'unlucky' ]);
 
-    const attributes = [ 'lucky' ];
-    const actor = Actor(society, attributes);
-
-    const otherAttributes = [ 'unlucky' ];
-    const otherActor = Actor(society, otherAttributes);
-
-    const judgement = actor.judge(otherActor);
-    console.log(judgement);
+    const judgement = famousPerson.judge(unluckyPerson);
     expect(judgement).toEqual([
-      { value: 'feared', reason: [] },
+      { value: 'sacred', reason: [ peopleAreSacred ] },
+      { value: 'feared', reason: [ unluckyPeopleAreFeared ] },
+    ]);
+
+    const judgement2 = unluckyPerson.judge(famousPerson);
+    expect(judgement2).toEqual([
+      { value: 'sacred', reason: [ peopleAreSacred ] },
+      { value: 'reviled', reason: [ famousPeopleAreLucky, luckyPeopleAreReviled ] },
     ]);
   });
 });

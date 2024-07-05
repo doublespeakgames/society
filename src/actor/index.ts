@@ -15,11 +15,11 @@ const ActorConstructor = (society:Society, attributes:Adjective[] = []):Actor =>
     name,
     ideology,
     attributes: attrs,
-    groups: new Set('people'),
+    groups: new Set(['people']),
     judge: (actor:Actor) => {
       const groups = [ ...actor.groups ];
       const identities = groups.flatMap(
-        group => attributes.map(attr => ({ 
+        group => [...actor.attributes].map(attr => ({ 
           adjective: attr,
           noun: group
         }))
