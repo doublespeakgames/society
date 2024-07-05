@@ -5,15 +5,15 @@ import ActorConstructor from "@src/actor";
 import { Actor } from "@src/actor/types";
 
 const SocietyConstructor = (principles:Assertion[], population:number):Society => {
-  const society = {
+  const actors:Actor[] = Array.from({ length: population }, () => ActorConstructor(principles));
+  return {
     ideology: IdeologyConstructor(principles),
+    population: actors,
     toString: () => `
       Principles: ${JSON.stringify(principles, null, 2)}
       Actors: ${actors.map(a => a.toString()).join(', ')}
     `
   };
-  const actors:Actor[] = Array.from({ length: population }, () => ActorConstructor(society));
-  return society;
 };
 
 export default SocietyConstructor;

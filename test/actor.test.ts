@@ -1,16 +1,14 @@
 import { describe, it, expect } from "@jest/globals";
 import Actor from '@src/actor'
-import SocietyConstructor from "@src/society";
 
 describe("Actor", () => {
   it("should be constructable", () => {
     const principles = [
       { subject: 'people', is: 'sacred' }
     ];
-    const society = SocietyConstructor(principles, 0);
 
     const attributes = [ 'lucky' ];
-    const actor = Actor(society, attributes);
+    const actor = Actor(principles, attributes);
 
     expect(actor.name).toBeTruthy();
     expect(actor.ideology).toBeTruthy();
@@ -31,9 +29,8 @@ describe("Actor", () => {
       unluckyPeopleAreFeared,
       famousPeopleAreLucky
     ];
-    const society = SocietyConstructor(principles, 0);
-    const famousPerson = Actor(society, [ 'famous' ]);
-    const unluckyPerson = Actor(society, [ 'unlucky' ]);
+    const famousPerson = Actor(principles, [ 'famous' ]);
+    const unluckyPerson = Actor(principles, [ 'unlucky' ]);
 
     const judgement = famousPerson.judge(unluckyPerson);
     expect(judgement).toEqual([

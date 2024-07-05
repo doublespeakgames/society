@@ -1,15 +1,15 @@
-import { Society } from "@src/society/types";
 import { Actor } from "./types";
 import { uniqueNamesGenerator, Config, names } from 'unique-names-generator';
-import { Adjective } from "@src/ideology/types";
+import { Adjective, Assertion } from "@src/ideology/types";
+import IdeologyConstructor from "@src/ideology";
 
 const namesConfig: Config = {
   dictionaries: [names],
 }
 
-const ActorConstructor = (society:Society, attributes:Adjective[] = []):Actor => {
+const ActorConstructor = (principles:Assertion[], attributes:Adjective[] = []):Actor => {
   const name = uniqueNamesGenerator(namesConfig);
-  const ideology = society.ideology.copy();
+  const ideology = IdeologyConstructor(principles);
   const attrs = new Set(attributes);
   return {
     name,

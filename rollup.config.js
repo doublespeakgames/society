@@ -8,9 +8,11 @@ export default {
     format: "cjs",
   },
   plugins: [
-    typescript(),
+    typescript({
+      exclude: ["**/*.test.ts", "**/*.config.ts"]
+    }),
     alias({
-      "@src": `${__dirname}/src`,
+      "@src": `${import.meta.dirname}/src`,
     }),
   ],
 };
