@@ -8,7 +8,7 @@ describe("Actor", () => {
     ];
 
     const attributes = [ 'lucky' ];
-    const actor = Actor(principles, attributes);
+    const actor = Actor({ principles, attributes });
 
     expect(actor.name).toBeTruthy();
     expect(actor.ideology).toBeTruthy();
@@ -29,8 +29,8 @@ describe("Actor", () => {
       unluckyPeopleAreFeared,
       famousPeopleAreLucky
     ];
-    const famousPerson = Actor(principles, [ 'famous' ]);
-    const unluckyPerson = Actor(principles, [ 'unlucky' ]);
+    const famousPerson = Actor({ principles, attributes: [ 'famous' ] });
+    const unluckyPerson = Actor({ principles, attributes: [ 'unlucky' ] });
 
     const judgement = famousPerson.judge(unluckyPerson);
     expect(judgement).toEqual([
