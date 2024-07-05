@@ -1,4 +1,4 @@
-import { Adjective, Assertion, Ideology, Judgement, Noun } from "@src/ideology/types"
+import { Adjective, Assertion, Ideology, Judgement, Noun, Subject } from "@src/ideology/types"
 
 export interface ActorConfig {
   name?: string;
@@ -10,8 +10,7 @@ export interface ActorConfig {
 export interface Actor {
   name: string;
   ideology: Ideology;
-  attributes: Set<Adjective>;
-  groups: Set<Noun>;
+  identities: () => Subject[];
   judge: (actor:Actor) => Judgement[];
   toString: () => string;
 }

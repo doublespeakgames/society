@@ -12,10 +12,22 @@ describe("Actor", () => {
 
     expect(actor.name).toBeTruthy();
     expect(actor.ideology).toBeTruthy();
-    expect(actor.attributes.size).toBe(attributes.length);
-    for (const attr of attributes) {
-      expect(actor.attributes.has(attr)).toBeTruthy();
-    }
+    expect(actor.identities()).toEqual([
+      'people',
+      { adjective: 'lucky', noun: 'people' }
+    ]);
+  });
+
+  it("should be able to have group identity", () => {
+    const groups = [ 'hackers', 'punks' ];
+    const attribute = 'chaotic';
+    const actor = Actor({ groups, attributes: [ attribute ] });
+    expect(actor.identities()).toEqual([
+      'people',
+      ...groups,
+      { adjective: attribute, noun: 'people' },
+      ...groups.map(group => ({ adjective: attribute, noun: group }))
+    ]);
   });
 
   it("should be able to judge other actors", () => {

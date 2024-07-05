@@ -18,21 +18,21 @@ const ActorConstructor = ({
   return {
     name,
     ideology,
-    attributes: attrs,
-    groups: new Set(['people', ...groups]),
-    judge: (actor:Actor) => {
-      const groups = [ ...actor.groups ];
-      const identities = groups.flatMap(
-        group => [...actor.attributes].map(attr => ({ 
+    identities: () => {
+      const allGroups = ['people', ...groups];
+      const identities = allGroups.flatMap(
+        group => attributes.map(attr => ({ 
           adjective: attr,
           noun: group
         }))
       );
-      const subjects = [
-        ...groups,
+      return [
+        ...allGroups,
         ...identities
       ];
-      return ideology.judge(subjects);
+    },
+    judge: (actor:Actor) => {
+      return ideology.judge(actor.identities());
     },
     toString: () => `
       Name: ${name}
