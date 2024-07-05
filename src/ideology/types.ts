@@ -12,33 +12,40 @@ export type CompoundNoun = {
 }
 // Add more Subject types here
 export type Subject = Noun | CompoundNoun;
+export type SubjectHash = string;
+
 export interface Action {
   subject: Subject;
   object?: Noun;
   verb: Verb;
 }
 
-export interface Assertion {
+export interface SimpleAssertion {
   subject: Subject;
   is: Noun | Adjective;
 }
 
-// Add more statement types here
-export type Statement = Assertion;
+export interface GroupAssertion {
+  group: Noun;
+  believe: SimpleAssertion | SimpleAssertion[];
+}
+
+// Add more assertion types here
+export type Assertion = SimpleAssertion | GroupAssertion;
 
 export interface Judgement {
   value: KeywordAdjective;
-  reason: Assertion[];
+  reason: SimpleAssertion[];
 }
 
 export interface Ideology {
-  assert: (statement:Assertion) => void;
-  judge: (subjectOrSubjects:Subject|Subject[]) => Judgement[];
+  assert: (assertion:Assertion) => void;
+  judge: (subjectOrSubjects:Subject|Subject[], group?:Noun) => Judgement[];
   principles: Assertion[];
   toString: () => string;
 }
 
 export interface ResolveTask {
   subject: Subject;
-  reason: Assertion[];
+  reason: SimpleAssertion[];
 }

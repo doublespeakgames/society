@@ -59,6 +59,42 @@ describe("Ideology", () => {
         { subject: { adjective: "valuable", noun: "flowers" }, is: "desired" }
       ] }
     ]);
+  });
 
-  })
+  it("should differentiate ideology across groups", () => {
+    const propertyIsSacred = { subject: 'property', is: 'sacred' };
+    const governmentIsReviled = { subject: 'government', is: 'reviled' };
+    const propertyIsTrivial = { subject: 'property', is: 'trivial' };
+    const governmentIsDesired = { subject: 'government', is: 'desired' };
+    const ideology = Ideology([
+      { group: 'capitalists', believe: [
+        propertyIsSacred,
+        governmentIsReviled,
+      ] },
+      { group: 'socialists', believe: [
+        propertyIsTrivial,
+        governmentIsDesired,
+      ] }
+    ]);
+
+    expect(ideology.judge('property', 'socialists')).toEqual([{
+      value: 'trivial',
+      reason: [ propertyIsTrivial ]
+    }]);
+
+    expect(ideology.judge('property', 'capitalists')).toEqual([{
+      value: 'sacred',
+      reason: [ propertyIsSacred]
+    }]);
+
+    expect(ideology.judge('government', 'socialists')).toEqual([{
+      value: 'desired',
+      reason: [ governmentIsDesired ]
+    }]);
+
+    expect(ideology.judge('government', 'capitalists')).toEqual([{
+      value: 'reviled',
+      reason: [ governmentIsReviled ]
+    }]);
+  });
 });

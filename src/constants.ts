@@ -3,4 +3,5 @@ export const VALUES = [
   'reviled',
   'sacred',
   'feared',
+  'trivial'
 ] as const;
