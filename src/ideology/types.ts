@@ -31,7 +31,7 @@ export type Assertion = SimpleAssertion | GroupAssertion;
 
 export interface Ideology {
   assert: (assertion:Assertion) => void;
-  judge: (subject:Subject, groups?:Noun[]) => Adjective[];
+  judge: (subject:Subject, group?:Noun) => Adjective[];
   principles: Assertion[];
   toString: () => string;
 }

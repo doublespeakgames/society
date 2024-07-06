@@ -34,20 +34,10 @@ describe("Ideology", () => {
       ] }
     ]);
 
-    expect(ideology.judge('property', ['socialists'])).toEqual(['trivial']);
-    expect(ideology.judge('property', ['capitalists'])).toEqual(['sacred']);
-    expect(ideology.judge('government', ['socialists'])).toEqual(['desired']);
-    expect(ideology.judge('government', ['capitalists'])).toEqual(['reviled']);
-  });
-
-  it("should merge beliefs when multiple groups are included", () => {
-    const ideology = Ideology([
-      { group: 'metalheads', believe: { subject: 'metal', is: 'sacred' } },
-      { group: 'punks', believe: { subject: 'punkrock', is: 'trivial' } },
-    ]);
-
-    expect(ideology.judge('metal', ['metalheads', 'punks'])).toEqual(['sacred']);
-    expect(ideology.judge('punkrock', ['metalheads', 'punks'])).toEqual(['trivial']);
+    expect(ideology.judge('property', 'socialists')).toEqual(['trivial']);
+    expect(ideology.judge('property', 'capitalists')).toEqual(['sacred']);
+    expect(ideology.judge('government', 'socialists')).toEqual(['desired']);
+    expect(ideology.judge('government', 'capitalists')).toEqual(['reviled']);
   });
 
   it("should be able to judge infinitives", () => {

@@ -32,6 +32,22 @@ describe("Actor", () => {
     ]);
   });
 
+  it("should be able to judge non-actor things", () => {
+    const flowersAreSacred = { subject: 'flowers', is: 'sacred' };
+    const prettyFlowersAreDesired = { subject: { adjective: 'pretty', noun: 'flowers' }, is: 'desired' };
+    const actor = Actor({ principles: [
+      flowersAreSacred,
+      prettyFlowersAreDesired
+    ]});
+    expect(actor.judge('flowers')).toEqual([
+      { value: 'sacred', reason: [ flowersAreSacred ] }
+    ]);
+    expect(actor.judge({ adjective: 'pretty', noun: 'flowers' }).sort(judgementSort)).toEqual([
+      { value: 'desired', reason: [ prettyFlowersAreDesired ] },
+      { value: 'sacred', reason: [ flowersAreSacred ] }
+    ]);
+  });
+
   it("should be able to infer beliefs", () => {
     const greedyPeopleAreCriminals = { subject: { adjective: 'greedy', noun: 'people' }, is: 'criminal' };
     const criminalPeopleAreReviled = { subject: { adjective: 'criminal', noun: 'people' }, is: 'reviled' };
@@ -130,6 +146,23 @@ describe("Actor", () => {
     expect(hippie.judge(punk).sort(judgementSort)).toEqual([
       { value: 'feared', reason: [ punksAreViolent, violentPeopleAreFeared ] },
       { value: 'sacred', reason: [ peopleAreSacred ] },
+    ]);
+  });
+
+  it("should merge beliefs when belonging to multiple groups", () => {
+    const metalIsSacred = { subject: 'metal', is: 'sacred' };
+    const punkrockIsTrivial = { subject: 'punkrock', is: 'trivial' };
+    const metalheadsBelieve = { group: 'metalheads', believe: [metalIsSacred] };
+    const punksBelieve = { group: 'punks', believe: [punkrockIsTrivial] };
+    const principles = [ metalheadsBelieve, punksBelieve ];
+    
+    const rocker = Actor({ principles, groups: [ 'metalheads', 'punks' ]});
+
+    expect(rocker.judge('metal')).toEqual([
+      { value: 'sacred', reason: [ metalIsSacred ] }
+    ]);
+    expect(rocker.judge('punkrock')).toEqual([
+      { value: 'trivial', reason: [ punkrockIsTrivial ] }
     ]);
   });
 

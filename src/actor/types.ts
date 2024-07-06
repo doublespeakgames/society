@@ -21,7 +21,7 @@ export interface Actor {
   name: string;
   ideology: Ideology;
   identities: () => Identity[];
-  judge: (actor:Actor, doing?:Action) => Judgement[];
+  judge: (subject:Actor | Identity, doing?:Action) => Judgement[];
   toString: () => string;
 }
 
