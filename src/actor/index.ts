@@ -1,11 +1,14 @@
-import { Actor, ActorConfig, Judgement, Thought } from "./types";
+import { Actor, ActorConfig, Identity, Judgement, Thought } from "./types";
 import { uniqueNamesGenerator, Config, names } from 'unique-names-generator';
-import { Adjective, Assertion, KeywordAdjective, Noun, SimpleAssertion, SubjectHash } from "@src/ideology/types";
-import IdeologyConstructor, { getNoun, getSubjectHash, isValue } from "@src/ideology";
+import { KeywordAdjective, Noun, SubjectHash } from "@src/ideology/types";
+import IdeologyConstructor, { getSubjectHash, isValue } from "@src/ideology";
 
 const namesConfig: Config = {
   dictionaries: [names],
-}
+};
+
+export const getBaseIdentity = (identity:Identity):Noun =>
+  typeof identity === "string" ? identity : identity.noun;
 
 const ActorConstructor = ({
   name = uniqueNamesGenerator(namesConfig),
@@ -31,10 +34,10 @@ const ActorConstructor = ({
       ];
     },
     judge: (actor:Actor) => {
-      const thoughts = actor.identities().map<Thought>(subject => ({ subject, reason: [] }));
+      const thoughts = actor.identities().map<Thought<Identity>>(subject => ({ subject, reason: [] }));
       const judgements:Judgement[] = [];
       const seenSubjects = new Set<SubjectHash>(thoughts.map(({ subject }) => getSubjectHash(subject)));
-      const nouns = new Set<Noun>(thoughts.map(({ subject }) => getNoun(subject)));
+      const nouns = new Set<Noun>(thoughts.map(({ subject }) => getBaseIdentity(subject)));
       while (thoughts.length > 0) {
         const thought = thoughts.pop();
         if (!thought) {

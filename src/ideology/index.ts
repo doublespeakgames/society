@@ -2,8 +2,10 @@ import { VALUES } from "@src/constants";
 import {
   Adjective,
   Assertion,
+  CompoundNoun,
   GroupAssertion,
   Ideology,
+  Infinitive,
   KeywordAdjective,
   Noun,
   ResolveTask,
@@ -13,14 +15,27 @@ import {
 } from "./types"
 
 export const getSubjectHash = (subject:Subject):string => {
-  if (typeof subject === "string") {
-    return subject;
+  if (isNoun(subject)) {
+    return subject as Noun;
   }
-  return `[${subject.adjective}] ${subject.noun}`;
+  if (isCompoundNoun(subject)) {
+    const { adjective, noun } = subject as CompoundNoun;
+    return `[${adjective}] ${noun}`;
+  }
+  if (isInfinitive(subject)) {
+    const { to } = subject as Infinitive;
+    return `<to ${to}>`;
+  }
+  throw new Error("Unknown subject type");
 };
 
-export const getNoun = (subject:Subject):Noun =>
-  typeof subject === "string" ? subject : subject.noun;
+export const isNoun = (subject:Subject):boolean =>  typeof subject === "string";
+
+export const isCompoundNoun = (subject:Subject):boolean => 
+  typeof subject === 'object' && 'adjective' in subject;
+
+export const isInfinitive = (subject:Subject):boolean => 
+  typeof subject === 'object' && 'to' in subject;
 
 export const values:Set<Adjective> = new Set(VALUES);
 export const isValue = (adjective:Adjective):boolean => values.has(adjective);

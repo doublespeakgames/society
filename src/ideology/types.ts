@@ -10,8 +10,10 @@ export type CompoundNoun = {
   adjective: Adjective;
   noun: Noun;
 }
+export type Infinitive = { to: Verb };
+
 // Add more Subject types here
-export type Subject = Noun | CompoundNoun;
+export type Subject = Noun | CompoundNoun | Infinitive;
 export type SubjectHash = string;
 
 export interface Action {

@@ -1,6 +1,7 @@
 import {
   Adjective,
   Assertion,
+  CompoundNoun,
   Ideology,
   KeywordAdjective,
   Noun,
@@ -18,13 +19,15 @@ export interface ActorConfig {
 export interface Actor {
   name: string;
   ideology: Ideology;
-  identities: () => Subject[];
+  identities: () => Identity[];
   judge: (actor:Actor) => Judgement[];
   toString: () => string;
 }
 
-export interface Thought {
-  subject: Subject;
+export type Identity = Noun | CompoundNoun;
+
+export interface Thought<S> {
+  subject: S;
   reason: SimpleAssertion[];
 }
 
