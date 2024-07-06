@@ -49,4 +49,16 @@ describe("Ideology", () => {
     expect(ideology.judge('metal', ['metalheads', 'punks'])).toEqual(['sacred']);
     expect(ideology.judge('punkrock', ['metalheads', 'punks'])).toEqual(['trivial']);
   });
+
+  it("should be able to judge infinitives", () => {
+    const ideology = Ideology([
+      { subject: { to: 'love' }, is: 'sacred' },
+      { subject: { to: 'hate' }, is: 'reviled' },
+      { subject: { to: 'be' }, is: 'trivial' }
+    ]);
+
+    expect(ideology.judge({ to: 'love' })).toEqual(['sacred']);
+    expect(ideology.judge({ to: 'hate' })).toEqual(['reviled']);
+    expect(ideology.judge({ to: 'be' })).toEqual(['trivial']);
+  });
 });
