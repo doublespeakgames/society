@@ -1,6 +1,6 @@
 import { Actor, ActorConfig, Identity, Judgement, Thought } from "./types";
 import { uniqueNamesGenerator, Config, names } from 'unique-names-generator';
-import { KeywordAdjective, Noun, SubjectHash } from "@src/ideology/types";
+import { Adjective, KeywordAdjective, Noun, SimpleAssertion, SubjectHash } from "@src/ideology/types";
 import IdeologyConstructor, { getSubjectHash, isValue } from "@src/ideology";
 
 const namesConfig: Config = {
@@ -33,11 +33,35 @@ const ActorConstructor = ({
         ...identities
       ];
     },
-    judge: (actor:Actor) => {
-      const thoughts = actor.identities().map<Thought<Identity>>(subject => ({ subject, reason: [] }));
+    judge: (actor, doing) => {
+      const identities = actor.identities();
+      const thoughts = identities.map<Thought>(subject => ({ subject, reason: [] }));
       const judgements:Judgement[] = [];
-      const seenSubjects = new Set<SubjectHash>(thoughts.map(({ subject }) => getSubjectHash(subject)));
-      const nouns = new Set<Noun>(thoughts.map(({ subject }) => getBaseIdentity(subject)));
+      const seenSubjects = new Set<SubjectHash>(identities.map(getSubjectHash));
+      const nouns = new Set<Noun>(identities.map(getBaseIdentity));
+      const addAdjective = (adjective:Adjective, reason:SimpleAssertion[]) => {
+        for (const noun of nouns) {
+          const newSubject = { adjective, noun };
+          const newHash = getSubjectHash(newSubject);
+          if (!seenSubjects.has(newHash)) {
+            seenSubjects.add(newHash)
+            thoughts.push({
+              subject: newSubject,
+              reason
+            });
+          }
+        }
+      };
+
+      if (doing) {
+        const infinitive = { to: doing.verb };
+        for (const actionAdjective of ideology.judge(infinitive, groups)) {
+          addAdjective(actionAdjective, [{
+            subject: infinitive,
+            is: actionAdjective
+          }]);
+        }
+      }
       while (thoughts.length > 0) {
         const thought = thoughts.pop();
         if (!thought) {
@@ -56,17 +80,7 @@ const ActorConstructor = ({
             });
           }
           else {
-            for (const noun of nouns) {
-              const newSubject = { adjective, noun };
-              const newHash = getSubjectHash(newSubject);
-              if (!seenSubjects.has(newHash)) {
-                seenSubjects.add(newHash)
-                thoughts.push({
-                  subject: newSubject,
-                  reason
-                });
-              }
-            }
+            addAdjective(adjective, reason);
           }
         }
       }

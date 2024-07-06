@@ -1,3 +1,4 @@
+import { Action } from "@src/action/types";
 import {
   Adjective,
   Assertion,
@@ -20,14 +21,14 @@ export interface Actor {
   name: string;
   ideology: Ideology;
   identities: () => Identity[];
-  judge: (actor:Actor) => Judgement[];
+  judge: (actor:Actor, doing?:Action) => Judgement[];
   toString: () => string;
 }
 
 export type Identity = Noun | CompoundNoun;
 
-export interface Thought<S> {
-  subject: S;
+export interface Thought {
+  subject: Identity;
   reason: SimpleAssertion[];
 }
 

@@ -132,4 +132,58 @@ describe("Actor", () => {
       { value: 'sacred', reason: [ peopleAreSacred ] },
     ]);
   });
+
+  it("should judge actors based on their actions", () => {
+    const peopleAreTrivial = { subject: 'people', is: 'trivial' };
+    const smokingIsCool = { subject: { to: 'smoke' }, is: 'cool' };
+    const coolPeopleAreDesired = { subject: { adjective: 'cool', noun: 'people' }, is: 'desired' };
+    const principles = [ 
+      smokingIsCool,
+      coolPeopleAreDesired,
+      peopleAreTrivial
+    ];
+
+    const actor = Actor({ principles });
+    expect(actor.judge(actor)).toEqual([{
+      value: 'trivial',
+      reason: [ peopleAreTrivial ]
+    }]);
+
+    expect(actor.judge(actor, { verb: 'smoke' }).sort(judgementSort)).toEqual([
+      { value: 'desired', reason: [ smokingIsCool, coolPeopleAreDesired ] },
+      { value: 'trivial', reason: [ peopleAreTrivial ] }
+    ]);
+  });
+
+  it("should judge actors based on their actions and group ideology", () => {
+    const protestIsCool = { subject: { to: 'protest' }, is: 'cool' };
+    const protestIsDangerous = { subject: { to: 'protest' }, is: 'dangerous' };
+    const coolPeopleAreDesired = { subject: { adjective: 'cool', noun: 'people' }, is: 'desired' };
+    const dangerousPeopleAreFeared = { subject: { adjective: 'dangerous', noun: 'people' }, is: 'feared' };
+    const dangerousPeopleAreReviled = { subject: { adjective: 'dangerous', noun: 'people' }, is: 'reviled' };
+    const punkBeliefs = { group: 'punks', believe: [protestIsCool] };
+    const bootlickerBeliefs = { group: 'bootlickers', believe: [protestIsDangerous, dangerousPeopleAreReviled] };
+    const principles = [ 
+      coolPeopleAreDesired,
+      dangerousPeopleAreFeared,
+      punkBeliefs,
+      bootlickerBeliefs
+    ];
+
+    const citizen = Actor({ principles });
+    const punk = Actor({ principles, groups: [ 'punks' ] });
+    const bootlicker = Actor({ principles, groups: [ 'bootlickers' ] });
+
+    expect(citizen.judge(punk)).toEqual([]);
+    expect(citizen.judge(punk, { verb: 'protest' })).toEqual([]);
+    expect(punk.judge(citizen)).toEqual([]);
+    expect(punk.judge(citizen, { verb: 'protest' })).toEqual([
+      { value: 'desired', reason: [ protestIsCool, coolPeopleAreDesired ] }
+    ]);
+    expect(bootlicker.judge(citizen)).toEqual([]);
+    expect(bootlicker.judge(citizen, { verb: 'protest' })).toEqual([
+      { value: 'feared', reason: [protestIsDangerous, dangerousPeopleAreFeared] },
+      { value: 'reviled', reason: [protestIsDangerous, dangerousPeopleAreReviled] }
+    ]);
+  });
 });

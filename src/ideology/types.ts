@@ -16,12 +16,6 @@ export type Infinitive = { to: Verb };
 export type Subject = Noun | CompoundNoun | Infinitive;
 export type SubjectHash = string;
 
-export interface Action {
-  subject: Subject;
-  object?: Noun;
-  verb: Verb;
-}
-
 export interface SimpleAssertion {
   subject: Subject;
   is: Noun | Adjective;
