@@ -1,6 +1,6 @@
 import { Actor, ActorConfig, Identity, Judgement, Thought } from "./types";
 import { uniqueNamesGenerator, Config, names } from 'unique-names-generator';
-import { Adjective, Ideology, KeywordAdjective, Noun, SimpleAssertion, Subject, SubjectHash } from "@src/ideology/types";
+import { Adjective, Assertion, Ideology, KeywordAdjective, Noun, SimpleAssertion, Subject, SubjectHash } from "@src/ideology/types";
 import IdeologyConstructor, { getSubjectHash, isCompoundNoun, isNoun, isValue } from "@src/ideology";
 
 const namesConfig: Config = {
@@ -19,10 +19,10 @@ const getIdentities = (subject:Actor | Identity):Identity[] => {
   return baseIdentity === subject ? [subject] : [baseIdentity, subject];
 }
 
-const judgeWithGroups = (ideology:Ideology, subject:Subject, groups:Noun[]):Adjective[] => {
-  const adjectives = ideology.judge(subject);
+const judgeWithGroups = (ideology:Ideology, subject:Subject, groups:Noun[]):[Adjective, Noun | null][] => {
+  const adjectives = ideology.judge(subject).map<[Adjective, Noun | null]>(adjective => [adjective, null]);
   for (const group of groups) {
-    adjectives.push(...ideology.judge(subject, group));
+    adjectives.push(...ideology.judge(subject, group).map<[Adjective, Noun | null]>(adjective => [adjective, group]));
   }
   return adjectives;
 };
@@ -56,7 +56,7 @@ const ActorConstructor = ({
       const judgements:Judgement[] = [];
       const seenSubjects = new Set<SubjectHash>(identities.map(getSubjectHash));
       const nouns = new Set<Noun>(identities.map(getBaseIdentity));
-      const addAdjective = (adjective:Adjective, reason:SimpleAssertion[]) => {
+      const addAdjective = (adjective:Adjective, reason:Assertion[]) => {
         for (const noun of nouns) {
           const newSubject = { adjective, noun };
           const newHash = getSubjectHash(newSubject);
@@ -72,11 +72,10 @@ const ActorConstructor = ({
 
       if (doing) {
         const infinitive = { to: doing.verb };
-        for (const actionAdjective of judgeWithGroups(ideology, infinitive, groups)) {
-          addAdjective(actionAdjective, [{
-            subject: infinitive,
-            is: actionAdjective
-          }]);
+        for (const [actionAdjective, group] of judgeWithGroups(ideology, infinitive, groups)) {
+          const assertion = { subject: infinitive, is: actionAdjective };
+          const reason:Assertion = group ? { group, believe: assertion } : assertion;
+          addAdjective(actionAdjective, [reason]);
         }
       }
       while (thoughts.length > 0) {
@@ -85,11 +84,11 @@ const ActorConstructor = ({
           break;
         }
         const adjectives = judgeWithGroups(ideology, thought.subject, groups);
-        for (const adjective of adjectives) {
-          const reason = thought.reason.concat({
-            subject: thought.subject,
-            is: adjective
-          });
+        for (const [adjective, group] of adjectives) {
+          const assertion = { subject: thought.subject, is: adjective };
+          const reason = thought.reason.concat(group 
+            ? { group, believe: assertion } 
+            : assertion);
           if (isValue(adjective)) {
             judgements.push({
               value: adjective as KeywordAdjective,

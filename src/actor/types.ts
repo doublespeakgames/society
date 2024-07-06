@@ -29,10 +29,10 @@ export type Identity = Noun | CompoundNoun;
 
 export interface Thought {
   subject: Identity;
-  reason: SimpleAssertion[];
+  reason: Assertion[];
 }
 
 export interface Judgement {
   value: KeywordAdjective;
-  reason: SimpleAssertion[];
+  reason: Assertion[];
 }
