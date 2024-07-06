@@ -33,14 +33,9 @@ export interface GroupAssertion {
 // Add more assertion types here
 export type Assertion = SimpleAssertion | GroupAssertion;
 
-export interface Judgement {
-  value: KeywordAdjective;
-  reason: SimpleAssertion[];
-}
-
 export interface Ideology {
   assert: (assertion:Assertion) => void;
-  judge: (subjectOrSubjects:Subject|Subject[], groups?:Noun[]) => Judgement[];
+  judge: (subject:Subject, groups?:Noun[]) => Adjective[];
   principles: Assertion[];
   toString: () => string;
 }

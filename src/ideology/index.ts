@@ -1,5 +1,16 @@
 import { VALUES } from "@src/constants";
-import { Adjective, Assertion, GroupAssertion, Ideology, Judgement, KeywordAdjective, Noun, ResolveTask, SimpleAssertion, Subject, SubjectHash } from "./types"
+import {
+  Adjective,
+  Assertion,
+  GroupAssertion,
+  Ideology,
+  KeywordAdjective,
+  Noun,
+  ResolveTask,
+  SimpleAssertion,
+  Subject,
+  SubjectHash
+} from "./types"
 
 export const getSubjectHash = (subject:Subject):string => {
   if (typeof subject === "string") {
@@ -49,43 +60,6 @@ const mergeBeliefs = (
   return mergedBeliefs;
 };
 
-const resolveBeliefs = (
-  beliefs:Record<SubjectHash, Adjective[]>,
-  tasks:ResolveTask[],
-  preJudgements:Judgement[]
-):Judgement[] => {
-  if (tasks.length === 0) {
-    return preJudgements;
-  }
-
-  // TODO: dedupe tasks
-  const { resolved, toResolve } = tasks
-    .map<{ resolved: Judgement[], toResolve: ResolveTask[]}>(({ subject, reason }) => {
-      const hash = getSubjectHash(subject);
-      const qualities = beliefs[hash] ?? [];
-      const resolved = qualities.filter(isValue).map<Judgement>((value) => ({
-        value: value as KeywordAdjective,
-        reason: [...reason, { subject, is: value }]
-      }));
-      const toResolve = qualities
-        .filter((adjective) => !isValue(adjective))
-        .map<ResolveTask>((adjective) => ({ 
-          subject: {adjective, noun: getNoun(subject)},
-          reason: [...reason, { subject, is: adjective }],
-        }));
-      return {
-        resolved,
-        toResolve
-      };
-    })
-    .reduce((acc, { resolved, toResolve }) => ({
-      resolved: acc.resolved.concat(resolved),
-      toResolve: acc.toResolve.concat(toResolve)
-    }), { resolved: [], toResolve: [] });
-
-    return resolveBeliefs(beliefs, toResolve, [...preJudgements, ...resolved]);
-};
-
 const IdeologyConstructor = (principles:Assertion[]):Ideology => {
 
   const simpleAssertions:SimpleAssertion[] = [];
@@ -112,11 +86,9 @@ const IdeologyConstructor = (principles:Assertion[]):Ideology => {
       // TODO
       throw new Error("Not implemented");
     },
-    judge: (subjectOrSubjects, groups) => {
-      const subjects = Array.isArray(subjectOrSubjects) ? subjectOrSubjects : [ subjectOrSubjects ];
-      const tasks = subjects.map(subject => ({ subject, reason: []}));
+    judge: (subject, groups) => {
       const fullBeliefs = groups ? mergeBeliefs(beliefs, groups.map(group => groupBeliefs[group])) : beliefs;
-      return resolveBeliefs(fullBeliefs, tasks, []);
+      return fullBeliefs[getSubjectHash(subject)] ?? [];
     },
     principles,
     toString: () => JSON.stringify(principles, null, 2)

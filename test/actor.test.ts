@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import Actor from '@src/actor'
 import { Assertion } from "@src/ideology/types";
+import { judgementSort } from "./utils";
 
 describe("Actor", () => {
   it("should be constructable", () => {
@@ -31,6 +32,50 @@ describe("Actor", () => {
     ]);
   });
 
+  it("should be able to infer beliefs", () => {
+    const greedyPeopleAreCriminals = { subject: { adjective: 'greedy', noun: 'people' }, is: 'criminal' };
+    const criminalPeopleAreReviled = { subject: { adjective: 'criminal', noun: 'people' }, is: 'reviled' };
+    const peopleAreGreedy = { subject: 'people', is: 'greedy' };
+    const actor = Actor({ principles: [
+      greedyPeopleAreCriminals,
+      criminalPeopleAreReviled,
+      peopleAreGreedy,
+    ]});
+
+    expect(actor.judge(actor)).toEqual([
+      { value: 'reviled', reason: [
+        peopleAreGreedy,
+        greedyPeopleAreCriminals,
+        criminalPeopleAreReviled
+      ] }
+    ]);
+  });
+
+  it("should allow values to stack", () => {
+    const peopleAreSacred = { subject: 'people', is: 'sacred' };
+    const prettyPeopleAreValuable = { subject: { adjective: 'pretty', noun: 'people'}, is: 'valuable' };
+    const valuablePeopleAreSacred = { subject: { adjective: 'valuable', noun: 'people' }, is: 'sacred' };
+    const actor = Actor({ principles: [
+      peopleAreSacred,
+      prettyPeopleAreValuable,
+      valuablePeopleAreSacred,
+    ]});
+
+    expect(actor.judge(Actor({}))).toEqual([
+      { value: 'sacred', reason: [peopleAreSacred] }
+    ]);
+
+    expect(actor.judge(Actor({ attributes: ['pretty'] })).sort(judgementSort)).toEqual([
+      { value: 'sacred', reason: [
+        peopleAreSacred
+      ] },
+      { value: "sacred", reason: [
+        prettyPeopleAreValuable,
+        valuablePeopleAreSacred
+      ] }
+    ]);
+  });
+
   it("should be able to judge other actors", () => {
     const peopleAreSacred = { subject: 'people', is: 'sacred' };
     const famousPeopleAreLucky = { subject: { adjective: 'famous', noun: 'people' }, is: 'lucky' };
@@ -46,19 +91,19 @@ describe("Actor", () => {
     const unluckyPerson = Actor({ principles, attributes: [ 'unlucky' ] });
 
     const judgement = famousPerson.judge(unluckyPerson);
-    expect(judgement).toEqual([
-      { value: 'sacred', reason: [ peopleAreSacred ] },
+    expect(judgement.sort(judgementSort)).toEqual([
       { value: 'feared', reason: [ unluckyPeopleAreFeared ] },
+      { value: 'sacred', reason: [ peopleAreSacred ] },
     ]);
 
     const judgement2 = unluckyPerson.judge(famousPerson);
-    expect(judgement2).toEqual([
-      { value: 'sacred', reason: [ peopleAreSacred ] },
+    expect(judgement2.sort(judgementSort)).toEqual([
       { value: 'reviled', reason: [ famousPeopleAreLucky, luckyPeopleAreReviled ] },
+      { value: 'sacred', reason: [ peopleAreSacred ] },
     ]);
   });
 
-  it("should judge things based on its group ideology", () => {
+  it("should judge things based on group ideology", () => {
     const peopleAreSacred = { subject: 'people', is: 'sacred' };
     const violentPeopleAreFeared = { subject: { adjective: 'violent', noun: 'people' }, is: 'feared' };
     const naivePeopleAreTrivial = { subject: { adjective: 'naive', noun: 'people' }, is: 'trivial' };
@@ -76,14 +121,15 @@ describe("Actor", () => {
     const punk = Actor({ principles, groups: [ 'punks' ] });
     const hippie = Actor({ principles, groups: [ 'hippies' ] });
 
-    expect(punk.judge(hippie)).toEqual([
+    const punkJudgement = punk.judge(hippie).sort(judgementSort);
+    expect(punkJudgement).toEqual([
       { value: 'sacred', reason: [ peopleAreSacred ] },
       { value: 'trivial', reason: [ hippiesAreNaive, naivePeopleAreTrivial ] },
     ]);
 
-    expect(hippie.judge(punk)).toEqual([
-      { value: 'sacred', reason: [ peopleAreSacred ] },
+    expect(hippie.judge(punk).sort(judgementSort)).toEqual([
       { value: 'feared', reason: [ punksAreViolent, violentPeopleAreFeared ] },
+      { value: 'sacred', reason: [ peopleAreSacred ] },
     ]);
   });
 });

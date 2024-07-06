@@ -3,62 +3,19 @@ import Ideology from '@src/ideology'
 
 describe("Ideology", () => {
   it("should be constructable with first principles", () => {
+    const peopleAreSacred = { subject: 'people', is: 'sacred' };
+    const propertyIsDesired = { subject: 'property', is: 'desired' };
+    const governmentIsFeared = { subject: 'government', is: 'feared' };
+
     const ideology = Ideology([
-      { subject: 'people', is: 'sacred' },
-      { subject: 'property', is: 'desired' },
-      { subject: 'government', is: 'reviled' },
+      peopleAreSacred,
+      propertyIsDesired,
+      governmentIsFeared,
     ]);
 
-    expect(ideology.judge('people')).toEqual([
-      { value: 'sacred', reason: [{ subject: 'people', is: 'sacred' }] }
-    ]);
-
-    expect(ideology.judge('government')).toEqual([
-      { value: 'reviled', reason: [{ subject: 'government', is: 'reviled' }] }
-    ]);
-
-    expect(ideology.judge('property')).toEqual([
-      { value: 'desired', reason: [{ subject: 'property', is: 'desired' }] }
-    ]);
-  });
-
-  it("should be able to infer beliefs", () => {
-    const ideology = Ideology([
-      { subject: { adjective: 'greedy', noun: 'people' }, is: 'criminal' },
-      { subject: { adjective: 'criminal', noun: 'people' }, is: 'reviled' },
-      { subject: 'people', is: 'greedy' },
-    ]);
-
-    expect(ideology.judge('people')).toEqual([
-      { value: 'reviled', reason: [
-        { subject: 'people', is: 'greedy' },
-        { subject: { adjective: 'greedy', noun: 'people' }, is: 'criminal' },
-        { subject: { adjective: 'criminal', noun: 'people' }, is: 'reviled' }
-      ] }
-    ]);
-  });
-
-  it("should allow values to stack", () => {
-    const ideology = Ideology([
-      { subject: { adjective: 'pretty', noun: 'flowers' }, is: 'desired' },
-      { subject: 'flowers', is: "desired" },
-      { subject: { adjective: 'pretty', noun: 'flowers' }, is: 'valuable' },
-      { subject: { adjective: 'valuable', noun: 'flowers' }, is: 'desired' },
-    ]);
-
-    expect(ideology.judge('flowers')).toEqual([
-      { value: 'desired', reason: [{ subject: 'flowers', is: 'desired' }] }
-    ]);
-
-    expect(ideology.judge({ adjective: 'pretty', noun: 'flowers' })).toEqual([
-      { value: 'desired', reason: [
-        { subject: { adjective: 'pretty', noun: 'flowers' }, is: 'desired' }
-      ] },
-      { value: "desired", reason: [
-        { subject: { adjective: "pretty", noun: "flowers" }, is: "valuable" },
-        { subject: { adjective: "valuable", noun: "flowers" }, is: "desired" }
-      ] }
-    ]);
+    expect(ideology.judge('people')).toEqual(['sacred']);
+    expect(ideology.judge('government')).toEqual(['feared']);
+    expect(ideology.judge('property')).toEqual(['desired']);
   });
 
   it("should differentiate ideology across groups", () => {
@@ -77,24 +34,19 @@ describe("Ideology", () => {
       ] }
     ]);
 
-    expect(ideology.judge('property', ['socialists'])).toEqual([{
-      value: 'trivial',
-      reason: [ propertyIsTrivial ]
-    }]);
+    expect(ideology.judge('property', ['socialists'])).toEqual(['trivial']);
+    expect(ideology.judge('property', ['capitalists'])).toEqual(['sacred']);
+    expect(ideology.judge('government', ['socialists'])).toEqual(['desired']);
+    expect(ideology.judge('government', ['capitalists'])).toEqual(['reviled']);
+  });
 
-    expect(ideology.judge('property', ['capitalists'])).toEqual([{
-      value: 'sacred',
-      reason: [ propertyIsSacred]
-    }]);
+  it("should merge beliefs when multiple groups are included", () => {
+    const ideology = Ideology([
+      { group: 'metalheads', believe: { subject: 'metal', is: 'sacred' } },
+      { group: 'punks', believe: { subject: 'punkrock', is: 'trivial' } },
+    ]);
 
-    expect(ideology.judge('government', ['socialists'])).toEqual([{
-      value: 'desired',
-      reason: [ governmentIsDesired ]
-    }]);
-
-    expect(ideology.judge('government', ['capitalists'])).toEqual([{
-      value: 'reviled',
-      reason: [ governmentIsReviled ]
-    }]);
+    expect(ideology.judge('metal', ['metalheads', 'punks'])).toEqual(['sacred']);
+    expect(ideology.judge('punkrock', ['metalheads', 'punks'])).toEqual(['trivial']);
   });
 });
