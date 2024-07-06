@@ -1,5 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import Actor from '@src/actor'
+import { Assertion } from "@src/ideology/types";
 
 describe("Actor", () => {
   it("should be constructable", () => {
@@ -54,6 +55,35 @@ describe("Actor", () => {
     expect(judgement2).toEqual([
       { value: 'sacred', reason: [ peopleAreSacred ] },
       { value: 'reviled', reason: [ famousPeopleAreLucky, luckyPeopleAreReviled ] },
+    ]);
+  });
+
+  it("should judge things based on its group ideology", () => {
+    const peopleAreSacred = { subject: 'people', is: 'sacred' };
+    const violentPeopleAreFeared = { subject: { adjective: 'violent', noun: 'people' }, is: 'feared' };
+    const naivePeopleAreTrivial = { subject: { adjective: 'naive', noun: 'people' }, is: 'trivial' };
+    const punksAreViolent = { subject: 'punks', is: 'violent' };
+    const hippiesAreNaive = { subject: 'hippies', is: 'naive' };
+    const punksBelieve = { group: 'punks', believe: [hippiesAreNaive]};
+    const hippiesBelieve = { group: 'hippies', believe: [punksAreViolent]};
+    const principles:Assertion[] = [
+      peopleAreSacred,
+      violentPeopleAreFeared,
+      naivePeopleAreTrivial,
+      punksBelieve,
+      hippiesBelieve
+    ];
+    const punk = Actor({ principles, groups: [ 'punks' ] });
+    const hippie = Actor({ principles, groups: [ 'hippies' ] });
+
+    expect(punk.judge(hippie)).toEqual([
+      { value: 'sacred', reason: [ peopleAreSacred ] },
+      { value: 'trivial', reason: [ hippiesAreNaive, naivePeopleAreTrivial ] },
+    ]);
+
+    expect(hippie.judge(punk)).toEqual([
+      { value: 'sacred', reason: [ peopleAreSacred ] },
+      { value: 'feared', reason: [ punksAreViolent, violentPeopleAreFeared ] },
     ]);
   });
 });

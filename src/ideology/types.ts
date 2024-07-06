@@ -40,7 +40,7 @@ export interface Judgement {
 
 export interface Ideology {
   assert: (assertion:Assertion) => void;
-  judge: (subjectOrSubjects:Subject|Subject[], group?:Noun) => Judgement[];
+  judge: (subjectOrSubjects:Subject|Subject[], groups?:Noun[]) => Judgement[];
   principles: Assertion[];
   toString: () => string;
 }

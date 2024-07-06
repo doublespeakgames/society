@@ -32,7 +32,7 @@ const ActorConstructor = ({
       ];
     },
     judge: (actor:Actor) => {
-      return ideology.judge(actor.identities());
+      return ideology.judge(actor.identities(), groups);
     },
     toString: () => `
       Name: ${name}

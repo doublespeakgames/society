@@ -77,22 +77,22 @@ describe("Ideology", () => {
       ] }
     ]);
 
-    expect(ideology.judge('property', 'socialists')).toEqual([{
+    expect(ideology.judge('property', ['socialists'])).toEqual([{
       value: 'trivial',
       reason: [ propertyIsTrivial ]
     }]);
 
-    expect(ideology.judge('property', 'capitalists')).toEqual([{
+    expect(ideology.judge('property', ['capitalists'])).toEqual([{
       value: 'sacred',
       reason: [ propertyIsSacred]
     }]);
 
-    expect(ideology.judge('government', 'socialists')).toEqual([{
+    expect(ideology.judge('government', ['socialists'])).toEqual([{
       value: 'desired',
       reason: [ governmentIsDesired ]
     }]);
 
-    expect(ideology.judge('government', 'capitalists')).toEqual([{
+    expect(ideology.judge('government', ['capitalists'])).toEqual([{
       value: 'reviled',
       reason: [ governmentIsReviled ]
     }]);

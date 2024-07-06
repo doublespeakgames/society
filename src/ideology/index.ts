@@ -29,6 +29,26 @@ const parseAssertions = (assertions:SimpleAssertion[]):Record<SubjectHash, Adjec
   return beliefs;
 };
 
+const mergeBeliefs = (
+  baseBeliefs:Record<SubjectHash, Adjective[]>,
+  groupBeliefs:Record<SubjectHash, Adjective[]>[]
+):Record<SubjectHash, Adjective[]> => {
+  const mergedBeliefs:Record<SubjectHash, Adjective[]> = {};
+  for (const [hash, adjectives] of Object.entries(baseBeliefs)) {
+    mergedBeliefs[hash] = [...adjectives];
+  }
+  for (const beliefs of groupBeliefs) {
+    // Note: When beliefs conflict, it could be fun to resolve it randomly...
+    for (const [hash, adjectives] of Object.entries(beliefs)) {
+      if (!mergedBeliefs[hash]) {
+        mergedBeliefs[hash] = [];
+      }
+      mergedBeliefs[hash].push(...adjectives);
+    }
+  }
+  return mergedBeliefs;
+};
+
 const resolveBeliefs = (
   beliefs:Record<SubjectHash, Adjective[]>,
   tasks:ResolveTask[],
@@ -63,7 +83,6 @@ const resolveBeliefs = (
       toResolve: acc.toResolve.concat(toResolve)
     }), { resolved: [], toResolve: [] });
 
-
     return resolveBeliefs(beliefs, toResolve, [...preJudgements, ...resolved]);
 };
 
@@ -93,15 +112,11 @@ const IdeologyConstructor = (principles:Assertion[]):Ideology => {
       // TODO
       throw new Error("Not implemented");
     },
-    judge: (subjectOrSubjects, group) => {
+    judge: (subjectOrSubjects, groups) => {
       const subjects = Array.isArray(subjectOrSubjects) ? subjectOrSubjects : [ subjectOrSubjects ];
       const tasks = subjects.map(subject => ({ subject, reason: []}));
-      const baseJudgements = resolveBeliefs(beliefs, tasks, []);
-      if (!group || !groupBeliefs[group]) {
-        return baseJudgements;
-      }
-      const groupJudgements = resolveBeliefs(groupBeliefs[group], tasks, []);
-      return baseJudgements.concat(groupJudgements);
+      const fullBeliefs = groups ? mergeBeliefs(beliefs, groups.map(group => groupBeliefs[group])) : beliefs;
+      return resolveBeliefs(fullBeliefs, tasks, []);
     },
     principles,
     toString: () => JSON.stringify(principles, null, 2)
