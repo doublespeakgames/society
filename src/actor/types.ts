@@ -17,11 +17,14 @@ export interface ActorConfig {
   groups?: Noun[];
 }
 
+export type ActorId = string;
+
 export interface Actor {
+  id: string;
   name: string;
   ideology: Ideology;
   identities: () => Identity[];
-  judge: (subject:Actor | Identity, doing?:Action) => Judgement[];
+  judge: (context:JudgementContext) => Judgement[];
   toString: () => string;
 }
 
@@ -33,6 +36,16 @@ export interface Thought {
 }
 
 export interface Judgement {
+  thing: Identity | Actor;
+  values: ValueJudgement[];
+}
+
+export interface ValueJudgement {
   value: KeywordAdjective;
   reason: Assertion[];
+}
+
+export interface JudgementContext {
+  things: Array<Identity | Actor>;
+  actions?: Array<Action>;
 }

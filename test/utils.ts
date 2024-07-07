@@ -1,6 +1,11 @@
-import { Judgement } from "@src/actor/types";
+import { Judgement, ValueJudgement } from "@src/actor/types";
 
-export const judgementSort = (a: Judgement, b: Judgement): number => {
+export const sortJudgements = (judgements:Judgement[]):Judgement[] => {
+  judgements.forEach(judgement => judgement.values.sort(judgementSort));
+  return judgements;
+};
+
+export const judgementSort = (a: ValueJudgement, b: ValueJudgement): number => {
   if (a.value < b.value) {
     return -1;
   }

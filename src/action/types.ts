@@ -1,7 +1,8 @@
-import { Actor } from "@src/actor/types";
-import { Verb } from "@src/ideology/types";
+import { Actor, Identity } from "@src/actor/types";
+import { Subject, Verb } from "@src/ideology/types";
 
 export interface Action {
   verb: Verb;
-  subject?: Actor;
+  subject: Actor;
+  object?: Identity | Actor;
 }

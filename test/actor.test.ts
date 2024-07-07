@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import Actor from '@src/actor'
 import { Assertion } from "@src/ideology/types";
-import { judgementSort } from "./utils";
+import { sortJudgements } from "./utils";
 
 describe("Actor", () => {
   it("should be constructable", () => {
@@ -12,6 +12,7 @@ describe("Actor", () => {
     const attributes = [ 'lucky' ];
     const actor = Actor({ principles, attributes });
 
+    expect(actor.id).toBeTruthy();
     expect(actor.name).toBeTruthy();
     expect(actor.ideology).toBeTruthy();
     expect(actor.identities()).toEqual([
@@ -39,12 +40,32 @@ describe("Actor", () => {
       flowersAreSacred,
       prettyFlowersAreDesired
     ]});
-    expect(actor.judge('flowers')).toEqual([
-      { value: 'sacred', reason: [ flowersAreSacred ] }
-    ]);
-    expect(actor.judge({ adjective: 'pretty', noun: 'flowers' }).sort(judgementSort)).toEqual([
-      { value: 'desired', reason: [ prettyFlowersAreDesired ] },
-      { value: 'sacred', reason: [ flowersAreSacred ] }
+    expect(actor.judge({ things: ['flowers'] })).toEqual([{
+      thing: 'flowers',
+      values: [{ value: 'sacred', reason: [ flowersAreSacred ] }]
+    }]);
+    expect(sortJudgements(actor.judge({ things: [{ adjective: 'pretty', noun: 'flowers' }] }))).toEqual([{
+      thing: { adjective: 'pretty', noun: 'flowers' },
+      values: [
+        { value: 'desired', reason: [ prettyFlowersAreDesired ] },
+        { value: 'sacred', reason: [ flowersAreSacred ] }
+      ]
+    }]);
+  });
+
+  it("should be able to judge multiple things", () => {
+    const informationIsDesired = { subject: 'information', is: 'desired' };
+    const lawsAreTrivial = { subject: 'laws', is: 'trivial' };
+    const corporationsAreReviled = { subject: 'corporations', is: 'reviled' };
+    const hacker = Actor({ principles: [
+      informationIsDesired,
+      lawsAreTrivial,
+      corporationsAreReviled
+    ]});
+    expect(hacker.judge({ things: ['information', 'laws', 'corporations'] })).toEqual([
+      { thing: 'information', values: [{ value: 'desired', reason: [ informationIsDesired ] }] },
+      { thing: 'laws', values: [{ value: 'trivial', reason: [ lawsAreTrivial ] }] },
+      { thing: 'corporations', values: [{ value: 'reviled', reason: [ corporationsAreReviled ] }] }
     ]);
   });
 
@@ -58,13 +79,15 @@ describe("Actor", () => {
       peopleAreGreedy,
     ]});
 
-    expect(actor.judge(actor)).toEqual([
-      { value: 'reviled', reason: [
+    const judgement = actor.judge({ things: [actor] });
+    expect(judgement).toEqual([{
+      thing: actor,
+      values: [{ value: 'reviled', reason: [
         peopleAreGreedy,
         greedyPeopleAreCriminals,
         criminalPeopleAreReviled
-      ] }
-    ]);
+      ] }]
+    }]);
   });
 
   it("should allow values to stack", () => {
@@ -77,19 +100,19 @@ describe("Actor", () => {
       valuablePeopleAreSacred,
     ]});
 
-    expect(actor.judge(Actor({}))).toEqual([
-      { value: 'sacred', reason: [peopleAreSacred] }
-    ]);
+    expect(actor.judge({ things: [actor] })).toEqual([{
+      thing: actor,
+      values: [{ value: 'sacred', reason: [peopleAreSacred] }]
+    }]);
 
-    expect(actor.judge(Actor({ attributes: ['pretty'] })).sort(judgementSort)).toEqual([
-      { value: 'sacred', reason: [
-        peopleAreSacred
-      ] },
-      { value: "sacred", reason: [
-        prettyPeopleAreValuable,
-        valuablePeopleAreSacred
-      ] }
-    ]);
+    const prettyActor = Actor({ attributes: ['pretty'] });
+    expect(sortJudgements(actor.judge({ things: [prettyActor] }))).toEqual([{
+      thing: prettyActor,
+      values: [
+        { value: 'sacred', reason: [peopleAreSacred] },
+        { value: "sacred", reason: [prettyPeopleAreValuable, valuablePeopleAreSacred] }
+      ]
+    }]);
   });
 
   it("should be able to judge other actors", () => {
@@ -106,17 +129,23 @@ describe("Actor", () => {
     const famousPerson = Actor({ principles, attributes: [ 'famous' ] });
     const unluckyPerson = Actor({ principles, attributes: [ 'unlucky' ] });
 
-    const judgement = famousPerson.judge(unluckyPerson);
-    expect(judgement.sort(judgementSort)).toEqual([
-      { value: 'feared', reason: [ unluckyPeopleAreFeared ] },
-      { value: 'sacred', reason: [ peopleAreSacred ] },
-    ]);
+    const judgement = famousPerson.judge({ things: [unluckyPerson] });
+    expect(sortJudgements(judgement)).toEqual([{
+      thing: unluckyPerson,
+      values: [
+        { value: 'feared', reason: [ unluckyPeopleAreFeared ] },
+        { value: 'sacred', reason: [ peopleAreSacred ] },
+      ]
+    }]);
 
-    const judgement2 = unluckyPerson.judge(famousPerson);
-    expect(judgement2.sort(judgementSort)).toEqual([
-      { value: 'reviled', reason: [ famousPeopleAreLucky, luckyPeopleAreReviled ] },
-      { value: 'sacred', reason: [ peopleAreSacred ] },
-    ]);
+    const judgement2 = unluckyPerson.judge({ things: [famousPerson] });
+    expect(sortJudgements(judgement2)).toEqual([{
+      thing: famousPerson,
+      values: [
+        { value: 'reviled', reason: [ famousPeopleAreLucky, luckyPeopleAreReviled ] },
+        { value: 'sacred', reason: [ peopleAreSacred ] },
+      ]
+    }]);
   });
 
   it("should judge things based on group ideology", () => {
@@ -137,16 +166,22 @@ describe("Actor", () => {
     const punk = Actor({ principles, groups: [ 'punks' ] });
     const hippie = Actor({ principles, groups: [ 'hippies' ] });
 
-    const punkJudgement = punk.judge(hippie).sort(judgementSort);
-    expect(punkJudgement).toEqual([
-      { value: 'sacred', reason: [ peopleAreSacred ] },
-      { value: 'trivial', reason: [ punksThinkHippiesAreNaive, naivePeopleAreTrivial ] },
-    ]);
+    const punkJudgement = punk.judge({ things: [hippie] });
+    expect(sortJudgements(punkJudgement)).toEqual([{
+      thing: hippie,
+      values: [
+        { value: 'sacred', reason: [ peopleAreSacred ] },
+        { value: 'trivial', reason: [ punksThinkHippiesAreNaive, naivePeopleAreTrivial ] },
+      ]
+    }]);
 
-    expect(hippie.judge(punk).sort(judgementSort)).toEqual([
-      { value: 'feared', reason: [ hippiesThinkPunksAreViolent, violentPeopleAreFeared ] },
-      { value: 'sacred', reason: [ peopleAreSacred ] },
-    ]);
+    expect(sortJudgements(hippie.judge({ things: [punk] }))).toEqual([{
+      thing: punk,
+      values: [
+        { value: 'feared', reason: [ hippiesThinkPunksAreViolent, violentPeopleAreFeared ] },
+        { value: 'sacred', reason: [ peopleAreSacred ] },
+      ]
+    }]);
   });
 
   it("should merge beliefs when belonging to multiple groups", () => {
@@ -158,12 +193,14 @@ describe("Actor", () => {
     
     const rocker = Actor({ principles, groups: [ 'metalheads', 'punks' ]});
 
-    expect(rocker.judge('metal')).toEqual([
-      { value: 'sacred', reason: [ metalheadsThinkMetalIsSacred ] }
-    ]);
-    expect(rocker.judge('punkrock')).toEqual([
-      { value: 'trivial', reason: [ punksThinkPunkrockIsTrivial ] }
-    ]);
+    expect(rocker.judge({ things: ['metal'] })).toEqual([{
+      thing: 'metal',
+      values: [{ value: 'sacred', reason: [ metalheadsThinkMetalIsSacred ] }]
+    }]);
+    expect(rocker.judge({ things: ['punkrock'] })).toEqual([{
+      thing: 'punkrock',
+      values: [{ value: 'trivial', reason: [ punksThinkPunkrockIsTrivial ] }]
+    }]);
   });
 
   it("should judge actors based on their actions", () => {
@@ -177,15 +214,31 @@ describe("Actor", () => {
     ];
 
     const actor = Actor({ principles });
-    expect(actor.judge(actor)).toEqual([{
-      value: 'trivial',
-      reason: [ peopleAreTrivial ]
+    const smoker = Actor({});
+    const nonsmoker = Actor({});
+    expect(actor.judge({ things: [smoker, nonsmoker] })).toEqual([{
+      thing: smoker,
+      values: [{ value: 'trivial', reason: [ peopleAreTrivial ] }]
+    }, {
+      thing: nonsmoker,
+      values: [{ value: 'trivial', reason: [ peopleAreTrivial ] }]
     }]);
 
-    expect(actor.judge(actor, { verb: 'smoke' }).sort(judgementSort)).toEqual([
-      { value: 'desired', reason: [ smokingIsCool, coolPeopleAreDesired ] },
-      { value: 'trivial', reason: [ peopleAreTrivial ] }
-    ]);
+    expect(sortJudgements(actor.judge({
+      things: [smoker, nonsmoker],
+      actions: [{ subject: smoker, verb: 'smoke' }]
+    }))).toEqual([{
+      thing: smoker,
+      values: [
+        { value: 'desired', reason: [ smokingIsCool, coolPeopleAreDesired ] },
+        { value: 'trivial', reason: [ peopleAreTrivial ] }
+      ]
+    }, {
+      thing: nonsmoker,
+      values: [
+        { value: 'trivial', reason: [ peopleAreTrivial ] }
+      ]
+    }]);
   });
 
   it("should judge actors based on their actions and group ideology", () => {
@@ -207,19 +260,33 @@ describe("Actor", () => {
     const punk = Actor({ principles, groups: [ 'punks' ] });
     const bootlicker = Actor({ principles, groups: [ 'bootlickers' ] });
 
-    expect(citizen.judge(punk)).toEqual([]);
-    expect(citizen.judge(punk, { verb: 'protest' })).toEqual([]);
-    expect(punk.judge(citizen)).toEqual([]);
-    expect(punk.judge(citizen, { verb: 'protest' })).toEqual([
-      { value: 'desired', reason: [ punksThinkProtestIsCool, coolPeopleAreDesired ] }
-    ]);
-    expect(bootlicker.judge(citizen)).toEqual([]);
-    expect(bootlicker.judge(citizen, { verb: 'protest' })).toEqual([
-      { value: 'feared', reason: [{ group: 'bootlickers', believe: protestIsDangerous }, dangerousPeopleAreFeared] },
-      { value: 'reviled', reason: [
-        { group: 'bootlickers', believe: protestIsDangerous }, 
-        { group: 'bootlickers', believe: dangerousPeopleAreReviled }
-      ] }
-    ]);
+    expect(citizen.judge({ things: [punk] })).toEqual([{ thing: punk, values: [] }]);
+    expect(citizen.judge({ 
+      things: [punk], 
+      actions: [{ subject: punk, verb: 'protest' }]
+    })).toEqual([{ thing: punk, values: [] }]);
+    expect(punk.judge({ things: [citizen] })).toEqual([{ thing: citizen, values: [] }]);
+    expect(punk.judge({
+      things: [citizen], 
+      actions: [{ subject: citizen, verb: 'protest' }]
+    })).toEqual([{
+      thing: citizen,
+      values: [{ value: 'desired', reason: [ punksThinkProtestIsCool, coolPeopleAreDesired ] }]
+    }]);
+    expect(bootlicker.judge({ things: [citizen] })).toEqual([{ thing: citizen, values: [] }]);
+    expect(bootlicker.judge({
+      things: [citizen],
+      actions: [{ subject: citizen, verb: 'protest' }]
+    })).toEqual([{
+      thing: citizen,
+      values: [
+        { value: 'feared', reason: [{ group: 'bootlickers', believe: protestIsDangerous }, dangerousPeopleAreFeared] },
+        { value: 'reviled', reason: [
+          { group: 'bootlickers', believe: protestIsDangerous }, 
+          { group: 'bootlickers', believe: dangerousPeopleAreReviled }
+        ] }
+      ]
+    }]);
   });
 });
+

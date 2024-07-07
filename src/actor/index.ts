@@ -1,7 +1,9 @@
-import { Actor, ActorConfig, Identity, Judgement, Thought } from "./types";
+import { Actor, ActorConfig, ActorId, Identity, Judgement, Thought } from "./types";
 import { uniqueNamesGenerator, Config, names } from 'unique-names-generator';
 import { Adjective, Assertion, Ideology, KeywordAdjective, Noun, SimpleAssertion, Subject, SubjectHash } from "@src/ideology/types";
 import IdeologyConstructor, { getSubjectHash, isCompoundNoun, isNoun, isValue } from "@src/ideology";
+import { v4 as uuid } from 'uuid';
+import ThoughtStack from "./thought-stack";
 
 const namesConfig: Config = {
   dictionaries: [names],
@@ -27,6 +29,14 @@ const judgeWithGroups = (ideology:Ideology, subject:Subject, groups:Noun[]):[Adj
   return adjectives;
 };
 
+const getThingHash = (thing:Identity | Actor):string => {
+  if (typeof thing === 'object' && 'judge' in thing) {
+    // Actor
+    return thing.id;
+  }
+  return getSubjectHash(thing);
+};
+
 const ActorConstructor = ({
   name = uniqueNamesGenerator(namesConfig),
   principles = [],
@@ -35,6 +45,7 @@ const ActorConstructor = ({
 }:ActorConfig):Actor => {
   const ideology = IdeologyConstructor(principles);
   return {
+    id: uuid(),
     name,
     ideology,
     identities: () => {
@@ -50,57 +61,49 @@ const ActorConstructor = ({
         ...identities
       ];
     },
-    judge: (actor, doing) => {
-      const identities = getIdentities(actor);
-      const thoughts = identities.map<Thought>(subject => ({ subject, reason: [] }));
-      const judgements:Judgement[] = [];
-      const seenSubjects = new Set<SubjectHash>(identities.map(getSubjectHash));
-      const nouns = new Set<Noun>(identities.map(getBaseIdentity));
-      const addAdjective = (adjective:Adjective, reason:Assertion[]) => {
-        for (const noun of nouns) {
-          const newSubject = { adjective, noun };
-          const newHash = getSubjectHash(newSubject);
-          if (!seenSubjects.has(newHash)) {
-            seenSubjects.add(newHash)
-            thoughts.push({
-              subject: newSubject,
-              reason
-            });
+    judge: ({ things, actions = [] }) => {
+      return things.map(thing => {
+        const identities = getIdentities(thing);
+        const thoughts = ThoughtStack(identities.map<Thought>(subject => ({ subject, reason: [] })));
+        const nouns = new Set<Noun>(identities.map(getBaseIdentity));
+        const takingActions = actions.filter(({ subject }) => subject === thing);
+        const judgement:Judgement = { thing, values: [] };
+        for (const { verb } of takingActions) {
+          const infinitive = { to: verb };
+          for (const [actionAdjective, group] of judgeWithGroups(ideology, infinitive, groups)) {
+            const assertion = { subject: infinitive, is: actionAdjective };
+            const reason = [group ? { group, believe: assertion } : assertion];
+            for (const noun of nouns) {
+              thoughts.push({ subject: { adjective: actionAdjective, noun }, reason });
+            }
           }
         }
-      };
-
-      if (doing) {
-        const infinitive = { to: doing.verb };
-        for (const [actionAdjective, group] of judgeWithGroups(ideology, infinitive, groups)) {
-          const assertion = { subject: infinitive, is: actionAdjective };
-          const reason:Assertion = group ? { group, believe: assertion } : assertion;
-          addAdjective(actionAdjective, [reason]);
-        }
-      }
-      while (thoughts.length > 0) {
-        const thought = thoughts.pop();
-        if (!thought) {
-          break;
-        }
-        const adjectives = judgeWithGroups(ideology, thought.subject, groups);
-        for (const [adjective, group] of adjectives) {
-          const assertion = { subject: thought.subject, is: adjective };
-          const reason = thought.reason.concat(group 
-            ? { group, believe: assertion } 
-            : assertion);
-          if (isValue(adjective)) {
-            judgements.push({
-              value: adjective as KeywordAdjective,
-              reason
-            });
+        while (!thoughts.isEmpty()) {
+          const thought = thoughts.pop();
+          if (!thought) {
+            break;
           }
-          else {
-            addAdjective(adjective, reason);
+          const adjectives = judgeWithGroups(ideology, thought.subject, groups);
+          for (const [adjective, group] of adjectives) {
+            const assertion = { subject: thought.subject, is: adjective };
+            const reason = thought.reason.concat(group 
+              ? { group, believe: assertion } 
+              : assertion);
+            if (isValue(adjective)) {
+              judgement.values.push({
+                value: adjective as KeywordAdjective,
+                reason
+              });
+            }
+            else {
+              for (const noun of nouns) {
+                thoughts.push({ subject: { adjective, noun }, reason });
+              }
+            }
           }
         }
-      }
-      return judgements;
+        return judgement;
+      });
     },
     toString: () => `
       Name: ${name}
