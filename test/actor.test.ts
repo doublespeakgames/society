@@ -288,5 +288,16 @@ describe("Actor", () => {
       ]
     }]);
   });
-});
 
+  it("should express emotion", () => {
+    const octopusesAreSacred = { subject: 'octopus', is: 'sacred' };
+    const actor = Actor({ principles: [ octopusesAreSacred ] });
+    const context = { things: ['octopus'] };
+    expect(actor.act(context)).toEqual({
+      verb: 'emote', 
+      subject: actor,
+      object: 'octopus',
+      withEmotion: 'sacred'
+    });
+  });
+});

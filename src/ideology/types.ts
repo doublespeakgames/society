@@ -1,7 +1,7 @@
-import { VALUES } from "../constants";
+import { VALUES, VERBS } from "../constants";
 
-export type KeywordVerb = "take" | "give";
 export type KeywordNoun = "people";
+export type KeywordVerb = typeof VERBS[number];
 export type KeywordAdjective = typeof VALUES[number];
 export type Noun = KeywordNoun | string;
 export type Verb = KeywordVerb | string;

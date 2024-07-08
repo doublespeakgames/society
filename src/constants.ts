@@ -5,3 +5,7 @@ export const VALUES = [
   'feared',
   'trivial'
 ] as const;
+
+export const VERBS = [
+  'emote'
+] as const;

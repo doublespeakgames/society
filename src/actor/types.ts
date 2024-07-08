@@ -6,8 +6,6 @@ import {
   Ideology,
   KeywordAdjective,
   Noun,
-  SimpleAssertion,
-  Subject
 } from "@src/ideology/types"
 
 export interface ActorConfig {
@@ -24,7 +22,8 @@ export interface Actor {
   name: string;
   ideology: Ideology;
   identities: () => Identity[];
-  judge: (context:JudgementContext) => Judgement[];
+  judge: (context:ActorContext) => Judgement[];
+  act: (context:ActorContext) => Action | null;
   toString: () => string;
 }
 
@@ -45,7 +44,13 @@ export interface ValueJudgement {
   reason: Assertion[];
 }
 
-export interface JudgementContext {
+export interface ActorContext {
   things: Array<Identity | Actor>;
   actions?: Array<Action>;
+}
+
+export interface Feeling {
+  subject: Identity | Actor;
+  value: KeywordAdjective;
+  strength: number;
 }
