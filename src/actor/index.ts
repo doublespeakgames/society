@@ -5,6 +5,7 @@ import IdeologyConstructor, { getSubjectHash, isCompoundNoun, isNoun, isValue } 
 import { v4 as uuid } from 'uuid';
 import ThoughtStack from "./thought-stack";
 import { Action } from "@src/action/types";
+import ActionConstructor from "@src/action";
 
 const namesConfig: Config = {
   dictionaries: [names],
@@ -111,7 +112,7 @@ const ActorConstructor = ({
   principles = [],
   attributes = [],
   groups = [],
-}:ActorConfig):Actor => {
+}:ActorConfig = {}):Actor => {
   const ideology = IdeologyConstructor(principles);
   const me:Actor = {
     id: uuid(),
@@ -139,13 +140,8 @@ const ActorConstructor = ({
       }
       const strongestFeeling = feelings.reduce(
         (strongest, current) =>current.strength > strongest.strength ? current : strongest);
-      const action:Action = {
-        subject: me,
-        object: strongestFeeling.subject,
-        verb: 'emote',
-        withEmotion: strongestFeeling.value
-      };
-      return action;
+      
+      return ActionConstructor(strongestFeeling, me, strongestFeeling.subject);
     },
     toString: () => `
       Name: ${name}

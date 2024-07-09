@@ -294,7 +294,7 @@ describe("Actor", () => {
     const actor = Actor({ principles: [ octopusesAreSacred ] });
     const context = { things: ['octopus'] };
     expect(actor.act(context)).toEqual({
-      verb: 'emote', 
+      verb: 'protect', 
       subject: actor,
       object: 'octopus',
       withEmotion: 'sacred'

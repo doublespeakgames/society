@@ -7,5 +7,9 @@ export const VALUES = [
 ] as const;
 
 export const VERBS = [
-  'emote'
+  'pursue',
+  'avoid',
+  'protect',
+  'flee',
+  'ignore'
 ] as const;
