@@ -46,8 +46,16 @@ const judge = (
     for (const [actionAdjective, group] of judgeWithGroups(ideology, infinitive, groups)) {
       const assertion = { subject: infinitive, is: actionAdjective };
       const reason = [group ? { group, believe: assertion } : assertion];
-      for (const noun of nouns) {
-        thoughts.push({ subject: { adjective: actionAdjective, noun }, reason });
+      if (isValue(actionAdjective)) {
+        judgement.values.push({
+          value: actionAdjective as KeywordAdjective,
+          reason
+        });
+      } 
+      else {
+        for (const noun of nouns) {
+          thoughts.push({ subject: { adjective: actionAdjective, noun }, reason });
+        }
       }
     }
   }
@@ -143,11 +151,7 @@ const ActorConstructor = ({
       
       return ActionConstructor(strongestFeeling, me, strongestFeeling.subject);
     },
-    toString: () => `
-      Name: ${name}
-      Ideology: ${ideology.toString()}
-      Attributes: ${JSON.stringify(attributes, null, 2)}
-    `
+    toString: () => JSON.stringify({ name, attributes, groups })
   };
   return me;
 };

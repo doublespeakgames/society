@@ -17,15 +17,38 @@ const getVerbForFeeling = (feeling:Feeling):KeywordVerb => {
   }
 }
 
+const objectString = (object?:Identity|Actor):string => {
+  if (!object) {
+    return 'nothing';
+  }
+  if (typeof object === 'object' && 'name' in object) {
+    return object.name;
+  }
+  if (typeof object === 'string') {
+    return object;
+  }
+  return `${object.adjective} ${object.noun}`;
+}
+
+export const actionString = ({ verb, subject, object, withEmotion }:Action) => JSON.stringify({
+  verb,
+  subject: subject.name,
+  object: objectString(object),
+  withEmotion
+})
+
 const ActionConstructor = (
   feeling:Feeling,
   subject:Actor,
   object:Identity|Actor
-):Action => ({
-  verb: getVerbForFeeling(feeling),
-  subject,
-  object,
-  withEmotion: feeling.value
-});
+):Action => {
+  const verb = getVerbForFeeling(feeling);
+  return {
+    verb,
+    subject,
+    object,
+    withEmotion: feeling.value
+  };
+};
 
 export default ActionConstructor;

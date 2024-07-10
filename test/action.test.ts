@@ -16,7 +16,7 @@ describe("Action", () => {
     const object = 'bunny';
     const feeling:Feeling = { subject, value, strength: 1 }
     const action = ActionConstructor(feeling, subject, object);
-    expect(action).toStrictEqual({
+  expect(action).toStrictEqual({
       verb,
       subject,
       object,

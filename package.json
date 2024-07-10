@@ -2,11 +2,10 @@
   "name": "society",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/main.ts",
+  "main": "src/index.ts",
   "author": "Michael Townsend <michael@doublespeakgames.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "tsx src/main.ts",
     "build": "yarn clean && rollup -c",
     "clean": "rm -rf dist",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"

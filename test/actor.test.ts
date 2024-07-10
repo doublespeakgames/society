@@ -184,6 +184,15 @@ describe("Actor", () => {
     }]);
   });
 
+  it("should judge actors for their group membership", () => {
+    const punksAreFeared = { subject: 'punks', is: 'feared' };
+    const actor = Actor({ principles: [ punksAreFeared ]});
+    const punk = Actor({ groups: [ 'punks' ] });
+    expect(actor.judge({ things: [punk] })).toEqual([
+      { thing: punk, values: [{ value: 'feared', reason: [ punksAreFeared ] }] }
+    ]);
+  })
+
   it("should merge beliefs when belonging to multiple groups", () => {
     const metalIsSacred = { subject: 'metal', is: 'sacred' };
     const punkrockIsTrivial = { subject: 'punkrock', is: 'trivial' };
@@ -206,8 +215,10 @@ describe("Actor", () => {
   it("should judge actors based on their actions", () => {
     const peopleAreTrivial = { subject: 'people', is: 'trivial' };
     const smokingIsCool = { subject: { to: 'smoke' }, is: 'cool' };
+    const smokingIsFeared = { subject: { to: 'smoke' }, is: 'feared' }
     const coolPeopleAreDesired = { subject: { adjective: 'cool', noun: 'people' }, is: 'desired' };
     const principles = [ 
+      smokingIsFeared,
       smokingIsCool,
       coolPeopleAreDesired,
       peopleAreTrivial
@@ -231,6 +242,7 @@ describe("Actor", () => {
       thing: smoker,
       values: [
         { value: 'desired', reason: [ smokingIsCool, coolPeopleAreDesired ] },
+        { value: 'feared', reason: [ smokingIsFeared ] },
         { value: 'trivial', reason: [ peopleAreTrivial ] }
       ]
     }, {

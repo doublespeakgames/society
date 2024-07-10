@@ -18,7 +18,7 @@ export const GlobalSociety = (actors:Actor[]):Society => {
 export const runSociety = (society:Society):Action[] => [...society]
   .flatMap(actorContext => {
     const actors = actorContext.things
-      .filter(thing => typeof thing === 'object' && 'judge' in thing);
+      .filter(thing => typeof thing === 'object' && 'act' in thing);
     return actors
       .flatMap(actor => actor.act(actorContext))
       .filter(Boolean) as Action[];
