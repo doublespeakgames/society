@@ -1,19 +1,25 @@
-import { Assertion } from "@src/ideology/types";
+import { Action } from "@src/action/types";
 import { Society } from "./types";
-import IdeologyConstructor from "@src/ideology";
-import ActorConstructor from "@src/actor";
-import { arrayOf } from "@src/utils";
+import { Actor } from "@src/actor/types";
 
-const SocietyConstructor = (principles:Assertion[], population:number):Society => {
-  const actors = arrayOf(population, () => ActorConstructor({ principles }));
+export const GlobalSociety = (actors:Actor[]):Society => {
+  let things:Actor[] = actors ?? [];
+  let actions:Action[] = [];
+  const iterator = function* () {
+    yield { things, actions };
+  };
+  const processActions = (newActions:Action[]) => actions = newActions;
   return {
-    ideology: IdeologyConstructor(principles),
-    population: actors,
-    toString: () => `
-      Principles: ${JSON.stringify(principles, null, 2)}
-      Actors: ${actors.map(a => a.toString()).join(', ')}
-    `
+    [Symbol.iterator]: iterator,
+    processActions
   };
 };
 
-export default SocietyConstructor;
+export const runSociety = (society:Society):Action[] => [...society]
+  .flatMap(actorContext => {
+    const actors = actorContext.things
+      .filter(thing => typeof thing === 'object' && 'judge' in thing);
+    return actors
+      .flatMap(actor => actor.act(actorContext))
+      .filter(Boolean) as Action[];
+  });

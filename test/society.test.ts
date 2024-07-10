@@ -1,18 +1,40 @@
 import { describe, it, expect } from "@jest/globals";
-import Society from '@src/society'
+import ActorConstructor from "@src/actor";
+import { runSociety, GlobalSociety} from '@src/society'
 
-describe("Society", () => {
-  it("should be constructable", () => {
-    const principles = [
-      { subject: 'people', is: 'sacred' }
-    ];
+describe("GlobalSociety", () => {
+  it("should have a single global context", () => {
+    const society = GlobalSociety([]);
+    expect([...society]).toStrictEqual([
+      { things: [], actions: [] },
+    ])
+  });
+  it("should process actions", () => {
+    const subject = ActorConstructor();
+    const society = GlobalSociety([subject]);
+    const actions = [{ verb: 'ignore', subject }];
+    const moreActions = [{ verb: 'avoid', subject }];
+    society.processActions(actions);
+    expect([...society]).toStrictEqual([
+      { things: [subject], actions },
+    ]);
+    society.processActions(moreActions);
+    expect([...society]).toStrictEqual([
+      { things: [subject], actions: moreActions },
+    ]);
+  });
+});
 
-    const society = Society(principles, 10);
-
-    expect(society.ideology.principles).toEqual(principles);
-    expect(society.population.length).toBe(10);
-    for (const actor of society.population) {
-      expect(actor.ideology.principles).toEqual(principles);
-    }
+describe("runSociety", () => {
+  it("should run society", () => {
+    const principles = [{ subject: 'people', is: 'reviled' }]
+    const subject = ActorConstructor({ principles});
+    const society = GlobalSociety([ subject ]);
+    expect(runSociety(society)).toStrictEqual([{ 
+      verb: 'avoid',
+      subject,
+      object: subject,
+      withEmotion: 'reviled'
+    }])
   });
 });
